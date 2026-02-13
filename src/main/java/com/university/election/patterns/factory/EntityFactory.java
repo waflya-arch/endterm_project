@@ -1,115 +1,93 @@
 package com.university.election.patterns.factory;
 
-import com.university.election.model.*;
-import com.university.election.patterns.singleton.AuditLogger;
+import com.university.election.model.BaseEntity;
+import com.university.election.model.Candidate;
+import com.university.election.model.Student;
+import com.university.election.model.Election;
+import org.springframework.stereotype.Component;
 
+/**
+ * Factory Pattern: Entity Factory
+ * Creates different types of BaseEntity subclasses
+ * Demonstrates polymorphism and Open-Closed Principle
+ */
+@Component
 public class EntityFactory {
-    private static final AuditLogger logger = AuditLogger.getInstance();
 
     public enum EntityType {
         CANDIDATE,
         STUDENT
     }
 
-    public static BaseEntity createEntity(EntityType type, String name) {
-        logger.debug("Creating entity of type: " + type + " with name: " + name);
-
-        BaseEntity entity = switch (type) {
-            case CANDIDATE -> {
-                Candidate candidate = new Candidate();
-                candidate.setName(name);
-                candidate.setYear(2); // Default year for candidates
-                candidate.setPlatform("Platform to be defined");
-                candidate.setVoteCount(0);
-                yield candidate;
-            }
-            case STUDENT -> {
-                Student student = new Student();
-                student.setName(name);
-                student.setStudentId("STU" + System.currentTimeMillis());
-                student.setYear(1); // Default year for students
-                student.setMajor("Undeclared");
-                student.setHasVoted(false);
-                yield student;
-            }
-        };
-
-        logger.info("Entity created: " + entity.getEntityType() + " - " + name);
-        return entity;
+    /**
+     * Factory method to create entities
+     * Returns BaseEntity type, demonstrating polymorphism
+     */
+    public BaseEntity createEntity(EntityType type, Object... params) {
+        switch (type) {
+            case CANDIDATE:
+                return createCandidate(params);
+            case STUDENT:
+                return createStudent(params);
+            default:
+                throw new IllegalArgumentException("Unknown entity type: " + type);
+        }
     }
 
-    public static BaseEntity createCandidate(String name, Integer year, String platform) {
-        logger.debug(String.format("Creating Candidate: name=%s, year=%d, platform=%s",
-                name, year, platform));
+    /**
+     * Create a Candidate entity
+     */
+    private Candidate createCandidate(Object[] params) {
+        if (params.length < 6) {
+            throw new IllegalArgumentException("Insufficient parameters for Candidate");
+        }
 
-        Candidate candidate = new Candidate(name, year, platform);
-
-        logger.info("Candidate created: " + name);
-        return candidate;
+        return new Candidate(
+                (Integer) params[0],  // id
+                (String) params[1],   // name
+                (String) params[2],   // faculty
+                (Integer) params[3],  // yearOfStudy
+                (String) params[4],   // campaign
+                (Election) params[5]  // election
+        );
     }
 
-    public static BaseEntity createCandidate(String name, Integer year, String platform, Integer electionId) {
-        logger.debug(String.format("Creating Candidate: name=%s, year=%d, electionId=%d",
-                name, year, electionId));
+    /**
+     * Create a Student entity
+     */
+    private Student createStudent(Object[] params) {
+        if (params.length < 6) {
+            throw new IllegalArgumentException("Insufficient parameters for Student");
+        }
 
-        Candidate candidate = new Candidate(name, year, platform);
-        candidate.setElectionId(electionId);
-
-        logger.logCandidateRegistration(name, electionId);
-        return candidate;
+        return new Student(
+                (Integer) params[0],  // id
+                (String) params[1],   // name
+                (String) params[2],   // studentId
+                (String) params[3],   // faculty
+                (Integer) params[4],  // yearOfStudy
+                (Boolean) params[5]   // hasVoted
+        );
     }
 
-    public static BaseEntity createStudent(String name, String studentId, Integer year, String major) {
-        logger.debug(String.format("Creating Student: name=%s, studentId=%s, year=%d, major=%s",
-                name, studentId, year, major));
+    /**
+     * Demonstrate factory usage
+     */
+    public void demonstrateFactory() {
+        System.out.println("=== Factory Pattern Demonstration ===");
 
-        Student student = new Student(name, studentId, year, major);
+        // Create Election for candidate
+        Election election = new Election(1, "Test Election", null, null, "2025-2026");
 
-        logger.info("Student created: " + name + " (" + studentId + ")");
-        return student;
-    }
+        // Create entities using factory
+        BaseEntity candidate = createEntity(EntityType.CANDIDATE,
+                1, "John Doe", "Computer Science", 3, "Better campus!", election);
 
-    public static BaseEntity createValidatedCandidate(String name, Integer year, String platform) {
-        // Validate year (candidates must be in years 2-4)
-        if (year < 2 || year > 4) {
-            logger.error("Invalid candidate year: " + year);
-            throw new IllegalArgumentException("Candidates must be in years 2-4");
-        }
+        BaseEntity student = createEntity(EntityType.STUDENT,
+                1, "Jane Smith", "S001", "Software Engineering", 2, false);
 
-        // Validate name
-        if (name == null || name.trim().isEmpty()) {
-            logger.error("Invalid candidate name");
-            throw new IllegalArgumentException("Candidate name cannot be empty");
-        }
-
-        // Validate platform
-        if (platform == null || platform.trim().isEmpty()) {
-            logger.error("Invalid candidate platform");
-            throw new IllegalArgumentException("Candidate platform cannot be empty");
-        }
-
-        return createCandidate(name, year, platform);
-    }
-
-    public static BaseEntity createValidatedStudent(String name, String studentId, Integer year, String major) {
-        // Validate year (students in years 1-4)
-        if (year < 1 || year > 4) {
-            logger.error("Invalid student year: " + year);
-            throw new IllegalArgumentException("Students must be in years 1-4");
-        }
-
-        // Validate name
-        if (name == null || name.trim().isEmpty()) {
-            logger.error("Invalid student name");
-            throw new IllegalArgumentException("Student name cannot be empty");
-        }
-
-        // Validate student ID
-        if (studentId == null || studentId.trim().isEmpty()) {
-            logger.error("Invalid student ID");
-            throw new IllegalArgumentException("Student ID cannot be empty");
-        }
-
-        return createStudent(name, studentId, year, major);
+        // Polymorphic behavior
+        System.out.println("Candidate: " + candidate.getDescription());
+        System.out.println("Student: " + student.getDescription());
     }
 }
