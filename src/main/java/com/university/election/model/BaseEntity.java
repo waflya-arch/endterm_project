@@ -1,5 +1,9 @@
 package com.university.election.model;
 
+/**
+ * Abstract base entity for all domain objects
+ * Demonstrates abstraction and Open-Closed Principle (OCP)
+ */
 public abstract class BaseEntity {
     protected Integer id;
     protected String name;
@@ -7,31 +11,24 @@ public abstract class BaseEntity {
     public BaseEntity() {
     }
 
-    public BaseEntity(String name) {
-        this.name = name;
-    }
-
     public BaseEntity(Integer id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    // Abstract methods to be implemented by subclasses
+    // Abstract methods that subclasses must implement
     public abstract String getDescription();
     public abstract boolean isEligible();
-    public abstract String getEntityType();
 
+    // Concrete method available to all subclasses
     public void displayInfo() {
-        System.out.println("=================================");
-        System.out.println("Entity Type: " + getEntityType());
         System.out.println("ID: " + id);
         System.out.println("Name: " + name);
         System.out.println("Description: " + getDescription());
-        System.out.println("Eligible: " + (isEligible() ? "Yes" : "No"));
-        System.out.println("=================================");
+        System.out.println("Eligible: " + isEligible());
     }
 
-    // Getters and Setters
+    // Getters and Setters (Encapsulation)
     public Integer getId() {
         return id;
     }
@@ -50,6 +47,6 @@ public abstract class BaseEntity {
 
     @Override
     public String toString() {
-        return String.format("%s[id=%d, name='%s']", getEntityType(), id, name);
+        return getClass().getSimpleName() + "{id=" + id + ", name='" + name + "'}";
     }
 }
