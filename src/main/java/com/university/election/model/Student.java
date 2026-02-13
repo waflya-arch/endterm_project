@@ -1,65 +1,70 @@
 package com.university.election.model;
 
-public class Student extends BaseEntity {
+import com.university.election.model.interfaces.Validatable;
+import com.university.election.model.interfaces.Votable;
+
+/**
+ * Student entity extending BaseEntity
+ * Demonstrates Inheritance, Polymorphism, and Multiple Interfaces
+ */
+public class Student extends BaseEntity implements Validatable, Votable {
     private String studentId;
-    private Integer year;
-    private String major;
-    private boolean hasVoted;
+    private String faculty;
+    private Integer yearOfStudy;
+    private Boolean hasVoted;
 
     public Student() {
         super();
         this.hasVoted = false;
     }
 
-    public Student(String name, String studentId, Integer year, String major) {
-        super(name);
-        this.studentId = studentId;
-        this.year = year;
-        this.major = major;
-        this.hasVoted = false;
-    }
-
-    public Student(Integer id, String name, String studentId, Integer year, String major, boolean hasVoted) {
+    public Student(Integer id, String name, String studentId, String faculty,
+                   Integer yearOfStudy, Boolean hasVoted) {
         super(id, name);
         this.studentId = studentId;
-        this.year = year;
-        this.major = major;
-        this.hasVoted = hasVoted;
+        this.faculty = faculty;
+        this.yearOfStudy = yearOfStudy;
+        this.hasVoted = hasVoted != null ? hasVoted : false;
     }
 
+    // Abstract method implementation from BaseEntity
     @Override
     public String getDescription() {
-        return String.format("Year %d %s student - %s", year, major, (hasVoted ? "Has voted" : "Has not voted"));
+        return "Student in " + faculty + ", Year " + yearOfStudy +
+                ". Voting Status: " + (hasVoted ? "Already voted" : "Not yet voted");
     }
 
+    // Abstract method implementation from BaseEntity
     @Override
     public boolean isEligible() {
-        // Students in years 1-4 are eligible to vote
-        return year != null && year >= 1 && year <= 4;
+        // All students (year 1-4) are eligible
+        return yearOfStudy != null && yearOfStudy >= 1 && yearOfStudy <= 4;
+    }
+
+    // Validatable interface implementation
+    @Override
+    public boolean validate() {
+        return Validatable.isNotEmpty(name) &&
+                Validatable.isNotEmpty(studentId) &&
+                Validatable.isNotEmpty(faculty) &&
+                yearOfStudy != null &&
+                isEligible();
+    }
+
+    // Votable interface implementation
+    @Override
+    public void vote() {
+        if (canVote()) {
+            this.hasVoted = true;
+            System.out.println(name + " has successfully voted!");
+        } else {
+            System.out.println(name + " cannot vote (already voted or not eligible)");
+        }
     }
 
     @Override
-    public String getEntityType() {
-        return "Student";
-    }
-
     public boolean canVote() {
         return isEligible() && !hasVoted;
-    }
-
-    public void recordVote() {
-        this.hasVoted = true;
-    }
-
-    @Override
-    public void displayInfo() {
-        super.displayInfo();
-        System.out.println("Student ID: " + studentId);
-        System.out.println("Year: " + year);
-        System.out.println("Major: " + major);
-        System.out.println("Has Voted: " + (hasVoted ? "Yes" : "No"));
-        System.out.println("Can Vote: " + (canVote() ? "Yes" : "No"));
-        System.out.println("=================================");
     }
 
     // Getters and Setters
@@ -71,27 +76,33 @@ public class Student extends BaseEntity {
         this.studentId = studentId;
     }
 
-    public Integer getYear() {
-        return year;
+    public String getFaculty() {
+        return faculty;
     }
 
-    public void setYear(Integer year) {
-        this.year = year;
+    public void setFaculty(String faculty) {
+        this.faculty = faculty;
     }
 
-    public String getMajor() {
-        return major;
+    public Integer getYearOfStudy() {
+        return yearOfStudy;
     }
 
-    public void setMajor(String major) {
-        this.major = major;
+    public void setYearOfStudy(Integer yearOfStudy) {
+        this.yearOfStudy = yearOfStudy;
     }
 
-    public boolean isHasVoted() {
+    public Boolean getHasVoted() {
         return hasVoted;
     }
 
-    public void setHasVoted(boolean hasVoted) {
+    public void setHasVoted(Boolean hasVoted) {
         this.hasVoted = hasVoted;
+    }
+
+    @Override
+    public String toString() {
+        return "Student{id=" + id + ", name='" + name + "', studentId='" + studentId +
+                "', faculty='" + faculty + "', year=" + yearOfStudy + ", voted=" + hasVoted + "}";
     }
 }

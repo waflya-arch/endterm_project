@@ -1,91 +1,93 @@
 package com.university.election.model;
 
-public class Candidate extends BaseEntity {
-    private Integer year;
-    private String platform;
-    private Integer electionId;
-    private Integer voteCount;
+import com.university.election.model.interfaces.Validatable;
+
+/**
+ * Candidate entity extending BaseEntity
+ * Demonstrates Inheritance, Polymorphism, and Composition
+ * A Candidate MUST have an Election (composition)
+ */
+public class Candidate extends BaseEntity implements Validatable {
+    private String faculty;
+    private Integer yearOfStudy;
+    private String campaign;
+    private Election election; // Composition: Candidate contains Election
 
     public Candidate() {
         super();
-        this.voteCount = 0;
     }
 
-    public Candidate(String name, Integer year, String platform) {
-        super(name);
-        this.year = year;
-        this.platform = platform;
-        this.voteCount = 0;
-    }
-
-    public Candidate(Integer id, String name, Integer year, String platform, Integer electionId, Integer voteCount) {
+    public Candidate(Integer id, String name, String faculty, Integer yearOfStudy,
+                     String campaign, Election election) {
         super(id, name);
-        this.year = year;
-        this.platform = platform;
-        this.electionId = electionId;
-        this.voteCount = voteCount != null ? voteCount : 0;
+        this.faculty = faculty;
+        this.yearOfStudy = yearOfStudy;
+        this.campaign = campaign;
+        this.election = election;
     }
 
+    // Abstract method implementation from BaseEntity
     @Override
     public String getDescription() {
-        return String.format("Year %d candidate running on platform: %s", year, platform);
+        return "Candidate running for University President in " +
+                (election != null ? election.getName() : "Unknown Election") +
+                ". Campaign: " + (campaign != null ? campaign : "No campaign message");
     }
 
+    // Abstract method implementation from BaseEntity
     @Override
     public boolean isEligible() {
-        // Candidates must be in years 2-4
-        return year != null && year >= 2 && year <= 4;
+        // Candidates must be in year 2, 3, or 4
+        return yearOfStudy != null && yearOfStudy >= 2 && yearOfStudy <= 4;
     }
 
+    // Validatable interface implementation
     @Override
-    public String getEntityType() {
-        return "Candidate";
-    }
-
-    @Override
-    public void displayInfo() {
-        super.displayInfo();
-        System.out.println("Year: " + year);
-        System.out.println("Platform: " + platform);
-        System.out.println("Election ID: " + electionId);
-        System.out.println("Vote Count: " + voteCount);
-        System.out.println("=================================");
+    public boolean validate() {
+        return Validatable.isNotEmpty(name) &&
+                Validatable.isNotEmpty(faculty) &&
+                yearOfStudy != null &&
+                isEligible() &&
+                election != null;
     }
 
     // Getters and Setters
-    public Integer getYear() {
-        return year;
+    public String getFaculty() {
+        return faculty;
     }
 
-    public void setYear(Integer year) {
-        this.year = year;
+    public void setFaculty(String faculty) {
+        this.faculty = faculty;
     }
 
-    public String getPlatform() {
-        return platform;
+    public Integer getYearOfStudy() {
+        return yearOfStudy;
     }
 
-    public void setPlatform(String platform) {
-        this.platform = platform;
+    public void setYearOfStudy(Integer yearOfStudy) {
+        this.yearOfStudy = yearOfStudy;
     }
 
-    public Integer getElectionId() {
-        return electionId;
+    public String getCampaign() {
+        return campaign;
     }
 
-    public void setElectionId(Integer electionId) {
-        this.electionId = electionId;
+    public void setCampaign(String campaign) {
+        this.campaign = campaign;
     }
 
-    public Integer getVoteCount() {
-        return voteCount;
+    public Election getElection() {
+        return election;
     }
 
-    public void setVoteCount(Integer voteCount) {
-        this.voteCount = voteCount;
+    public void setElection(Election election) {
+        this.election = election;
     }
 
-    public void incrementVoteCount() {
-        this.voteCount++;
+    @Override
+    public String toString() {
+        return "Candidate{id=" + id + ", name='" + name + "', faculty='" + faculty +
+                "', year=" + yearOfStudy + ", electionId=" +
+                (election != null ? election.getId() : "null") + "}";
     }
 }
